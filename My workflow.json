@@ -1,0 +1,573 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are Dobby, a new IT Administrator for Ashish. Your sole responsibility is to ensure the website at http://172.22.178.246:8090/ is operational.\n\nCRITICAL PERMISSION RULES:\n\n- You MUST request EXPLICIT APPROVAL before running ANY command that could modify the system\n\n- This includes but is not limited to: docker start, docker stop, docker run, docker rm, kill, pkill, systemctl, or any command that creates, modifies, or deletes files\n\n- Even diagnostic commands like docker ps, netstat, or ps are fine without permission\n\n- When in doubt, ASK FIRST\n\nYou are a Docker expert. You know everything about Docker and common issues that prevent containers from running properly. In our environment, we have a web server that should be running inside a Docker container called \"website\" on port 8090.\n\nWhen asked if the website is up, follow these systematic troubleshooting steps:\n\n1. First, check if the website is accessible using the HTTP tool\n\n2. The website is operational ONLY if it returns HTML containing: <h1>hi I am Ashish!!</h1>\n\n3. If the website is down, investigate systematically:\n   - Check if the container exists and its current state\n   - Check what's currently using port 8090 (could be another process)\n   - Look for any error messages or logs\n   - Identify the root cause before attempting any fix\n\n4. Once you've identified the issue, explain what you found and request permission for the specific fix needed\n\n5. Only after receiving explicit approval, apply the necessary fix to restore the website\n\nRemember: Always investigate thoroughly before proposing solutions. Something else might be using the port.\n\nREQUIRED OUTPUT FORMAT:\nYou MUST always respond with a JSON object in this exact format:\n{\n    \"website_up\": true/false,\n    \"message\": \"Detailed explanation of status and any actions taken\",\n    \"applied_fix\": true/false,\n    \"needs_approval\": true/false,\n    \"commands_requested\": \"Specific commands needing approval (null if none)\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -240
+      ],
+      "id": "ef048fbf-a4df-49cd-ae15-875a86cfb962",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        48
+      ],
+      "id": "99896985-cc73-4232-bf9f-032064b90bd8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nO9Kg8H2I5kdQ3M8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "{{ $json.chatid }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        80
+      ],
+      "id": "ff03a780-f5fa-416d-8a55-3a88c35db73f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        -160
+      ],
+      "id": "8e27ae76-2cd9-48d2-9714-b3532078b18e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d36515dc-0479-425b-8eb7-afb5c68606a8",
+              "name": "prompt",
+              "value": "monitor this website  http://172.22.178.246:8090/ . if its down. fix it",
+              "type": "string"
+            },
+            {
+              "id": "50628b5b-1abf-47ce-86d3-532f38d8cde8",
+              "name": "chatid",
+              "value": "dobby12345",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -160
+      ],
+      "id": "f2ef997e-428b-4eaf-a604-884bdb089785",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "chatId": "854299426",
+        "text": "=WEBSITE: {{ $json.output.website_up }}\n\nMESSAGE: {{ $json.output.message }}\n\n",
+        "replyMarkup": "=none",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        -128
+      ],
+      "id": "7f60516b-477f-4c8e-bcf4-212a639a150a",
+      "name": "Send a text message",
+      "webhookId": "30e18ea1-bd46-4973-abb4-17d2870bd683",
+      "credentials": {
+        "telegramApi": {
+          "id": "nr3d95EUDAtZzJxe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Dobby\nL1 Support Eng",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        -464
+      ],
+      "typeVersion": 1,
+      "id": "f6eb80ae-1bce-42fb-8987-27228c54f06c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -400
+      ],
+      "id": "23960889-2dcd-4dc7-aebe-57228796fe60",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"website_up\": true,\n    \"message\": \"Detailed explanation of status and any actions taken\",\n    \"applied_fix\": true,\n    \"needs_approval\": true,\n    \"commands_requested\": \"Specific commands needing approval (null if none)\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        64
+      ],
+      "id": "50b9dea7-8a30-4165-aa0c-095057dcdbc2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool to see if the website is up",
+        "url": "=http://172.22.178.246:8090/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        304,
+        160
+      ],
+      "id": "3423cdcf-fac4-4209-9722-23a2db876732",
+      "name": "HTTP TOOL"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0a7fabd9-d0b1-48b5-a393-bbed442501d3",
+              "leftValue": "={{ $json.output.needs_approval }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        -240
+      ],
+      "id": "3bdcae42-dc18-4d35-a685-6670d22e1938",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to run command on the server running our website for troubleshooting porpose",
+        "workflowId": {
+          "__rl": true,
+          "value": "i6dcQOmL4sIMrK4R",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6dcQOmL4sIMrK4R",
+          "cachedResultName": "Dobby"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "command": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('command', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "command"
+          ],
+          "schema": [
+            {
+              "id": "command",
+              "displayName": "command",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        176
+      ],
+      "id": "bdc77a99-a989-4d2a-b47b-988e8b6776c5",
+      "name": "CLI TOOL"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f723abec-af93-42e1-ade7-227c2a33ce4b",
+              "name": "prompt",
+              "value": "={{ $json.data.approved }}",
+              "type": "string"
+            },
+            {
+              "id": "940d96e5-4dc5-490d-8be4-9e396cadb8cc",
+              "name": "chatid",
+              "value": "={{ $('Edit Fields').item.json.chatid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -464
+      ],
+      "id": "9e9085bc-3201-46f3-b1bd-18cda8d3bad9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "854299426",
+        "message": "=WEBSITE UP: {{ $json.output.website_up }}\n\nMESSAGE: {{ $json.output.message }}\n\nNEED APROVAL: {{ $json.output.needs_approval }}\n\nCOMMAND REQUESTED: {{ $json.output.commands_requested }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        -448
+      ],
+      "id": "a8aff6dd-27ff-4063-a5bb-6c3ac5b6de90",
+      "name": "Send a text message1",
+      "webhookId": "fd89eaca-966b-4c80-9457-7da295db05e8",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "nr3d95EUDAtZzJxe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.applied_fix }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "fd07ed21-055b-49af-8d18-325d23c42507"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7a3f9aaa-f3e9-4400-b962-5f0c9fdeecad",
+                    "leftValue": "={{ $json.output.website_up }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        640,
+        -32
+      ],
+      "id": "16fd5c82-5775-47a9-b6e7-a810974e6d78",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "854299426",
+        "text": "=WEBSITE: {{ $json.output.website_up }}\n\nMESSAGE: {{ $json.output.message }}\n\n",
+        "replyMarkup": "=none",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        48
+      ],
+      "id": "e92ba0d3-8f7a-4a1b-818e-0799d031cbd6",
+      "name": "Send a text message2",
+      "webhookId": "30e18ea1-bd46-4973-abb4-17d2870bd683",
+      "credentials": {
+        "telegramApi": {
+          "id": "nr3d95EUDAtZzJxe",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP TOOL": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLI TOOL": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0235a95-b66f-4968-bf7f-8017291d5f63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3b4d55b9acabce3e50cd635d2c61b875357253f7e69980d3bffba936b5e9cfd4"
+  },
+  "id": "fs6T80gUA7KIH8lK",
+  "tags": []
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Dobby",
+  "nodes": [
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -96
+      ],
+      "id": "a46c25f8-a67b-45b6-b1a3-135b19508f6d",
+      "name": "Execute a command",
+      "credentials": {
+        "sshPassword": {
+          "id": "aRUA2DnNZKx4f3NL",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "command"
+            }
+          ]
+        }
+      },
+      "id": "fb5294b8-20b5-461c-b173-480a9d4fbb64",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        -176
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Execute a command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5a733ea3-118c-439e-866f-5af057ef4682",
+  "meta": {
+    "instanceId": "3b4d55b9acabce3e50cd635d2c61b875357253f7e69980d3bffba936b5e9cfd4"
+  },
+  "id": "i6dcQOmL4sIMrK4R",
+  "tags": []
+}
